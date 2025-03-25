@@ -20,7 +20,7 @@ def _is_rocket_launch_today(task_instance, **_):
     #pprint(launch_data_today["results"])
     
 
-def _data_to_parquet(task_instance, **context):
+def _data_to_parquet(task_instance, data_interval_start, **_):
     launch_data_today = json.loads(task_instance.xcom_pull(task_ids="get_launch_data", key="return_value"))
     
     launches = []
@@ -48,7 +48,7 @@ def _data_to_parquet(task_instance, **context):
                                ])
     pprint(df)
 
-    file_name = context["data_interval_start"].strftime('%Y%m%d').lower()
+    file_name = data_interval_start.strftime('%Y%m%d').lower()
     df.to_parquet(f"/tmp/{file_name}.parquet", engine="pyarrow")
     
 
@@ -82,4 +82,4 @@ with DAG(
 
 
     # Define dependencies
-    is_api_available >> get_launch_data >> is_rocket_launch_today >> add_file_to_storage
+    (is_api_available >> get_launch_data >> is_rocket_launch_today >> add_file_to_storage)
